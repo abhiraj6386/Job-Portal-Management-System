@@ -16,7 +16,9 @@ const MyApplications = () => {
 
   useEffect(() => {
     try {
-      if (user && user.role === "Employer") {
+      if (!user) return; // Wait for user to be loaded
+
+      if (user.role === "Employer") {
         axios
           .get("http://localhost:10000/api/v1/application/employer/getall", {
             withCredentials: true,
@@ -36,7 +38,7 @@ const MyApplications = () => {
     } catch (error) {
       toast.error(error.response.data.message);
     }
-  }, [isAuthorized]);
+  }, [isAuthorized, user]);
 
   if (!isAuthorized) {
     navigateTo("/");
@@ -149,6 +151,16 @@ const JobSeekerCard = ({ element, deleteApplication, openModal }) => {
           />
         </div>
         <div className="btn_area">
+          {/* Status Badge */}
+          <div style={{ marginBottom: "10px" }}>
+            <span style={{ fontWeight: "bold" }}>Status: </span>
+            <span style={{
+              color: element.status === "Accepted" ? "green" : element.status === "Rejected" ? "red" : "blue",
+              fontWeight: "bold"
+            }}>
+              {element.status || "Pending"}
+            </span>
+          </div>
           <button onClick={() => deleteApplication(element._id)}>
             Delete Application
           </button>
@@ -159,6 +171,23 @@ const JobSeekerCard = ({ element, deleteApplication, openModal }) => {
 };
 
 const EmployerCard = ({ element, openModal }) => {
+  const [status, setStatus] = useState(element.status || "Pending");
+
+  const handleStatusChange = async (e) => {
+    const newStatus = e.target.value;
+    setStatus(newStatus);
+    try {
+      await axios.put(`http://localhost:10000/api/v1/application/status/update/${element._id}`, {
+        status: newStatus
+      }, {
+        withCredentials: true
+      });
+      toast.success(`Application ${newStatus}`);
+    } catch (error) {
+      toast.error("Failed to update status");
+    }
+  };
+
   return (
     <>
       <div className="job_seeker_card">
@@ -185,6 +214,17 @@ const EmployerCard = ({ element, openModal }) => {
             alt="resume"
             onClick={() => openModal(element.resume.url)}
           />
+        </div>
+        <div className="btn_area">
+          {/* Status Update Dropdown */}
+          <div style={{ marginBottom: "10px" }}>
+            <label style={{ fontWeight: "bold", marginRight: "5px" }}>Status:</label>
+            <select value={status} onChange={handleStatusChange} style={{ padding: "5px", borderRadius: "5px" }}>
+              <option value="Pending">Pending</option>
+              <option value="Accepted">Accepted</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
         </div>
       </div>
     </>

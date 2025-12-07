@@ -1349,3 +1349,75 @@ nav .hamburger {
     z-index: 11;
   }
 }
+
+/* Filter Bar Styling */
+.jobs .container .filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.jobs .container .filter-bar input,
+.jobs .container .filter-bar select {
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 200px;
+}
+
+.jobs .container .filter-bar input:focus,
+.jobs .container .filter-bar select:focus {
+  outline: none;
+  border-color: #2d5649;
+}
+
+/* Pagination Styling */
+.jobs .container .pagination {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.jobs .container .pagination button {
+  padding: 10px 20px;
+  background-color: #2d5649;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.jobs .container .pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.jobs .container .pagination button:hover:not(:disabled) {
+  background-color: #1a3c33;
+}
+
+.jobs .container .pagination span {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+@media (max-width: 850px) {
+    .jobs .container .filter-bar input,
+    .jobs .container .filter-bar select {
+        width: 45%;
+    }
+}
+
+@media (max-width: 500px) {
+    .jobs .container .filter-bar input,
+    .jobs .container .filter-bar select {
+        width: 100%;
+    }
+}

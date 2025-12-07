@@ -9,6 +9,10 @@ export const errorMiddleware = (err, req, res, next) => {
   err.message = err.message || "Internal Server Error";
   err.statusCode = err.statusCode || 500;
 
+  if (err.statusCode === 500) {
+    console.error("Internal Server Error:", err);
+  }
+
   if (err.name === "CastError") {
     const message = `Resource not found. Invalid ${err.path}`,
       err = new ErrorHandler(message, 400);

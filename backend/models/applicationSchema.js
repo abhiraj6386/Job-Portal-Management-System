@@ -26,14 +26,18 @@ const applicationSchema = new mongoose.Schema({
     required: [true, "Please enter your Address!"],
   },
   resume: {
-    public_id: {
-      type: String, 
+    data: {
+      type: Buffer,
       required: true,
     },
-    url: {
-      type: String, 
+    contentType: {
+      type: String,
       required: true,
     },
+    originalName: {
+      type: String,
+      required: true,
+    }
   },
   applicantID: {
     user: {
@@ -59,6 +63,11 @@ const applicationSchema = new mongoose.Schema({
       required: true,
     },
   },
-});
+  status: {
+    type: String,
+    enum: ["Pending", "Accepted", "Rejected"],
+    default: "Pending",
+  },
+}, { timestamps: true });
 
 export const Application = mongoose.model("Application", applicationSchema);

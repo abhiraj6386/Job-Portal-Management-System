@@ -3,10 +3,57 @@ import { Job } from "../models/jobSchema.js";
 import ErrorHandler from "../middlewares/error.js";
 
 export const getAllJobs = catchAsyncErrors(async (req, res, next) => {
-  const jobs = await Job.find({ expired: false });
+  const { keyword, category, country, city, location, sort, page, limit } = req.query;
+
+  // Filtering
+  const query = { expired: false };
+  if (keyword) {
+    query.$or = [
+      { title: { $regex: keyword, $options: "i" } },
+      { description: { $regex: keyword, $options: "i" } },
+    ];
+  }
+  if (category) {
+    query.category = { $regex: category, $options: "i" };
+  }
+  if (country) {
+    query.country = { $regex: country, $options: "i" };
+  }
+  if (city) {
+    query.city = { $regex: city, $options: "i" };
+  }
+  if (location) {
+    query.location = { $regex: location, $options: "i" };
+  }
+
+  // Sorting
+  let sortOption = { createdAt: -1 }; // Default: Newest first
+  if (sort) {
+    if (sort === "oldest") {
+      sortOption = { createdAt: 1 };
+    } else if (sort === "newest") {
+      sortOption = { createdAt: -1 };
+    } else if (sort === "salaryHigh") {
+      sortOption = { fixedSalary: -1, salaryTo: -1 };
+    } else if (sort === "salaryLow") {
+      sortOption = { fixedSalary: 1, salaryFrom: 1 };
+    }
+  }
+
+  // Pagination
+  const pageNum = Number(page) || 1;
+  const limitNum = Number(limit) || 10;
+  const skip = (pageNum - 1) * limitNum;
+
+  const totalJobs = await Job.countDocuments(query);
+  const jobs = await Job.find(query).sort(sortOption).skip(skip).limit(limitNum);
+
   res.status(200).json({
     success: true,
     jobs,
+    totalJobs,
+    page: pageNum,
+    totalPages: Math.ceil(totalJobs / limitNum),
   });
 });
 

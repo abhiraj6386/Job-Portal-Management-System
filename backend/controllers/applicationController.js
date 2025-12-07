@@ -2,7 +2,9 @@ import { catchAsyncErrors } from "../middlewares/catchAsyncError.js";
 import ErrorHandler from "../middlewares/error.js";
 import { Application } from "../models/applicationSchema.js";
 import { Job } from "../models/jobSchema.js";
-import cloudinary from "cloudinary";
+
+import fs from "fs";
+
 
 export const postApplication = catchAsyncErrors(async (req, res, next) => {
   const { role } = req.user;
@@ -22,17 +24,7 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
       new ErrorHandler("Invalid file type. Please upload a PNG file.", 400)
     );
   }
-  const cloudinaryResponse = await cloudinary.uploader.upload(
-    resume.tempFilePath
-  );
 
-  if (!cloudinaryResponse || cloudinaryResponse.error) {
-    console.error(
-      "Cloudinary Error:",
-      cloudinaryResponse.error || "Unknown Cloudinary error"
-    );
-    return next(new ErrorHandler("Failed to upload Resume to Cloudinary", 500));
-  }
   const { name, email, coverLetter, phone, address, jobId } = req.body;
   const applicantID = {
     user: req.user._id,
@@ -62,6 +54,11 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
   ) {
     return next(new ErrorHandler("Please fill all fields.", 400));
   }
+
+  // Create Application with Binary Data
+  // Since useTempFiles is true, resume.data is empty. We must read from tempFilePath.
+  const resumeBuffer = fs.readFileSync(resume.tempFilePath);
+
   const application = await Application.create({
     name,
     email,
@@ -71,8 +68,9 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
     applicantID,
     employerID,
     resume: {
-      public_id: cloudinaryResponse.public_id,
-      url: cloudinaryResponse.secure_url,
+      data: resumeBuffer, // Binary buffer from file
+      contentType: resume.mimetype,
+      originalName: resume.name,
     },
   });
   res.status(200).json({
@@ -80,6 +78,20 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
     message: "Application Submitted!",
     application,
   });
+});
+
+export const getResume = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params;
+  const application = await Application.findById(id);
+  if (!application) {
+    return next(new ErrorHandler("Application not found!", 404));
+  }
+  if (!application.resume || !application.resume.data) {
+    return next(new ErrorHandler("Resume not found!", 404));
+  }
+
+  res.set("Content-Type", application.resume.contentType);
+  res.send(application.resume.data);
 });
 
 export const employerGetAllApplications = catchAsyncErrors(
@@ -91,7 +103,17 @@ export const employerGetAllApplications = catchAsyncErrors(
       );
     }
     const { _id } = req.user;
-    const applications = await Application.find({ "employerID.user": _id });
+    const rawApplications = await Application.find({ "employerID.user": _id }).select("-resume.data");
+
+    // Add resume.url for frontend compatibility
+    const applications = rawApplications.map(app => {
+      const appObj = app.toObject();
+      if (appObj.resume) {
+        appObj.resume.url = `http://localhost:${process.env.PORT || 10000}/api/v1/application/resume/${app._id}`;
+      }
+      return appObj;
+    });
+
     res.status(200).json({
       success: true,
       applications,
@@ -108,7 +130,17 @@ export const jobseekerGetAllApplications = catchAsyncErrors(
       );
     }
     const { _id } = req.user;
-    const applications = await Application.find({ "applicantID.user": _id });
+    const rawApplications = await Application.find({ "applicantID.user": _id }).select("-resume.data");
+
+    // Add resume.url
+    const applications = rawApplications.map(app => {
+      const appObj = app.toObject();
+      if (appObj.resume) {
+        appObj.resume.url = `http://localhost:${process.env.PORT || 10000}/api/v1/application/resume/${app._id}`;
+      }
+      return appObj;
+    });
+
     res.status(200).json({
       success: true,
       applications,
@@ -136,3 +168,31 @@ export const jobseekerDeleteApplication = catchAsyncErrors(
     });
   }
 );
+
+export const employerUpdateStatus = catchAsyncErrors(async (req, res, next) => {
+  const { role } = req.user;
+  if (role === "Job Seeker") {
+    return next(
+      new ErrorHandler("Job Seeker not allowed to access this resource.", 400)
+    );
+  }
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!status) {
+    return next(new ErrorHandler("Please provide a status.", 400));
+  }
+
+  const application = await Application.findById(id);
+  if (!application) {
+    return next(new ErrorHandler("Application not found!", 404));
+  }
+
+  application.status = status;
+  await application.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Application Status Updated!",
+  });
+});
