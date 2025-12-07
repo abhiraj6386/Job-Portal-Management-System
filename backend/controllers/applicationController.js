@@ -109,7 +109,10 @@ export const employerGetAllApplications = catchAsyncErrors(
     const applications = rawApplications.map(app => {
       const appObj = app.toObject();
       if (appObj.resume) {
-        appObj.resume.url = `http://localhost:${process.env.PORT || 10000}/api/v1/application/resume/${app._id}`;
+        const protocol = req.protocol;
+        const host = req.get("host");
+        const backendUrl = process.env.BACKEND_URL || `${protocol}://${host}`;
+        appObj.resume.url = `${backendUrl}/api/v1/application/resume/${app._id}`;
       }
       return appObj;
     });
@@ -136,7 +139,10 @@ export const jobseekerGetAllApplications = catchAsyncErrors(
     const applications = rawApplications.map(app => {
       const appObj = app.toObject();
       if (appObj.resume) {
-        appObj.resume.url = `http://localhost:${process.env.PORT || 10000}/api/v1/application/resume/${app._id}`;
+        const protocol = req.protocol;
+        const host = req.get("host");
+        const backendUrl = process.env.BACKEND_URL || `${protocol}://${host}`;
+        appObj.resume.url = `${backendUrl}/api/v1/application/resume/${app._id}`;
       }
       return appObj;
     });
