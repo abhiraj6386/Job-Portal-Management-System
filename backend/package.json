@@ -24,8 +24,5 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
-  },
-  "overrides": {
-    "buffer-equal-constant-time": "file:./fixed_deps/buffer-equal-constant-time"
   }
 }
