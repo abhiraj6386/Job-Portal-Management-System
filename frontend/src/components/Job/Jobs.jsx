@@ -27,7 +27,7 @@ const Jobs = () => {
   useEffect(() => {
     try {
       // Build query string
-      let query = `http://localhost:10000/api/v1/job/getall?page=${page}&limit=8`; // limit 8 per page
+      let query = `${import.meta.env.VITE_BACKEND_URL}/api/v1/job/getall?page=${page}&limit=8`; // limit 8 per page
       if (debouncedKeyword) query += `&keyword=${debouncedKeyword}`;
       if (category) query += `&category=${category}`;
       if (sort) query += `&sort=${sort}`;

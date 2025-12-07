@@ -22,7 +22,7 @@ const Register = () => {
     e.preventDefault();
     try {
       const { data } = await axios.post(
-        "http://localhost:10000/api/v1/user/register",
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/user/register`,
         { name, phone, email, role, password },
         {
           headers: {
@@ -43,8 +43,8 @@ const Register = () => {
     }
   };
 
-  if(isAuthorized){
-    return <Navigate to={'/'}/>
+  if (isAuthorized) {
+    return <Navigate to={'/'} />
   }
 
 

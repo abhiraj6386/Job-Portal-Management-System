@@ -20,7 +20,7 @@ const MyApplications = () => {
 
       if (user.role === "Employer") {
         axios
-          .get("http://localhost:10000/api/v1/application/employer/getall", {
+          .get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/application/employer/getall`, {
             withCredentials: true,
           })
           .then((res) => {
@@ -28,7 +28,7 @@ const MyApplications = () => {
           });
       } else {
         axios
-          .get("http://localhost:10000/api/v1/application/jobseeker/getall", {
+          .get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/application/jobseeker/getall`, {
             withCredentials: true,
           })
           .then((res) => {
@@ -47,7 +47,7 @@ const MyApplications = () => {
   const deleteApplication = (id) => {
     try {
       axios
-        .delete(`http://localhost:10000/api/v1/application/delete/${id}`, {
+        .delete(`${import.meta.env.VITE_BACKEND_URL}/api/v1/application/delete/${id}`, {
           withCredentials: true,
         })
         .then((res) => {
@@ -177,7 +177,7 @@ const EmployerCard = ({ element, openModal }) => {
     const newStatus = e.target.value;
     setStatus(newStatus);
     try {
-      await axios.put(`http://localhost:10000/api/v1/application/status/update/${element._id}`, {
+      await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/v1/application/status/update/${element._id}`, {
         status: newStatus
       }, {
         withCredentials: true
