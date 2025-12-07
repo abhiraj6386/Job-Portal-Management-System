@@ -1,5 +1,6 @@
 {
   "name": "backend",
+  "$schema": "https://json.schemastore.org/package",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
